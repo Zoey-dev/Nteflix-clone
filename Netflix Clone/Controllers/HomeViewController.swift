@@ -9,7 +9,8 @@ import UIKit
 
 class HomeViewController: UIViewController {
     
-   
+   let sectionTitles = ["Trending movies", "Popular", "Trending TV", "Upcoming Movies", "Top rated"]
+    
     private let homeFeedTable: UITableView = {
         let table = UITableView(frame: .zero, style: .grouped)
         table.register(CollectionViewTableViewCell.self, forCellReuseIdentifier: CollectionViewTableViewCell.identifier) //register our custom view cell
@@ -25,8 +26,23 @@ class HomeViewController: UIViewController {
         homeFeedTable.delegate = self
         homeFeedTable.dataSource = self
         
+        configureNavbar()
+        
         let headerView = HeroHeaderUIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 450))
         homeFeedTable.tableHeaderView = headerView //give the collection view a header
+    }
+    
+    private func configureNavbar() {
+        var image = UIImage(named: "netflix-logo")
+        image = image?.withRenderingMode(.alwaysOriginal)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: image, style: .done, target: self, action: nil)
+        
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(image: UIImage(systemName: "person"), style: .done, target: self, action: nil),
+            UIBarButtonItem(image: UIImage(systemName: "play.rectangle"), style: .done, target: self, action: nil)
+        ]
+        
+        navigationController?.navigationBar.tintColor = .white
     }
     
     //give tableview a frame
@@ -34,12 +50,11 @@ class HomeViewController: UIViewController {
         super.viewDidLayoutSubviews()
         homeFeedTable.frame = view.bounds
     }
-    
 }
 
 extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 20
+        return sectionTitles.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -59,6 +74,27 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 40
+    }
+    
+    //modify the header texts
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        guard let header = view as? UITableViewHeaderFooterView else {return}
+        header.textLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        header.textLabel?.frame = CGRect(x: header.bounds.origin.x + 20, y: header.bounds.origin.y, width: 100, height: header.bounds.height)
+        header.textLabel?.textColor = .white
+    }
+    
+    //add titles for the sections
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return sectionTitles[section]
+    }
+    
+    //implements the functionality to make the nav bar scroll with the header view instead of sticking to the top
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let defaultoffset = view.safeAreaInsets.top
+        let offset = scrollView.contentOffset.y + defaultoffset
+        
+        navigationController?.navigationBar.transform = .init(translationX: 0, y: min(0, -offset))
     }
 }
 
